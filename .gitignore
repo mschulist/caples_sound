@@ -149,3 +149,6 @@ node_modules/
 config.json
 bird-vocalization-classifier/
 custom_classifier/
+service-account.json
+!requirements.txt
+*.cache

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 
-const SERVER_URL = "http://localhost:5000";
+const SERVER_URL = "https://checkravenserver-efz2d6tgpa-uc.a.run.app";
 
 function App() {
   const [melspec, setMelspec] = useState<string | ArrayBuffer | null>(null);

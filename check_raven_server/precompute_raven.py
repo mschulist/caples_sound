@@ -79,6 +79,14 @@ def precompute_raven(
 
 
 if __name__ == "__main__":
+    """
+    Example when run from caples_sound dir:
+    python check_raven_server/precompute_raven.py \
+        -ra comparison/raven_annotations_even.csv \
+        -pd comparison/precomputed_raven \
+        -adg "ARU_data_all/*/" \
+    --max_workers 32
+    """
     parser = argparse.ArgumentParser(
         description="Precompute mel spectrograms and wav files for all raven examples"
     )

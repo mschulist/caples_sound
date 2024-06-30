@@ -1,0 +1,1 @@
+docker build -t us-central1-docker.pkg.dev/caples/bird-ml/check_raven_server:v0.0.${1} .

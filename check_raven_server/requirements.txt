@@ -1,0 +1,4 @@
+git+https://github.com/google-research/perch.git
+flask
+flask-cors
+gunicorn
