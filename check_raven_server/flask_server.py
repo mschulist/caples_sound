@@ -12,7 +12,7 @@ import chirp.audio_utils as audio_utils
 import librosa
 
 # Load Raven annotations
-raven = pd.read_csv("../comparison/raven_annotations.csv")
+raven = pd.read_csv("../comparison/raven_annotations_even.csv")
 
 sample_rate = 32000
 
