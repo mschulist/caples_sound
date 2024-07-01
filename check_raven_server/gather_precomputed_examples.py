@@ -57,6 +57,9 @@ def get_next_precomputed_example(
             "call": labeled_path
             / epath.Path(f"{species}_call")
             / epath.Path(f"{filename}__{timestamp_s}.wav"),
+            "unknown": labeled_path
+            / epath.Path("unknown")
+            / epath.Path(f"{filename}__{timestamp_s}.wav"),
         }
 
         # write to file to say that we have looked at this recording_path already
