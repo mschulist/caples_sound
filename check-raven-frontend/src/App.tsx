@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { hash, compare } from 'bcryptjs';
+import { compare } from 'bcryptjs';
 import "./App.css";
 import Directions from "./components/Directions";
 
