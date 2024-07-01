@@ -28,6 +28,11 @@ export default function Directions() {
         </span>
       </p>
       <p className="mt-4">
+        <span className="text-orange-500">
+          If nothing is vocalizing (e.g. just noise), please select unknown. 
+        </span>
+      </p>
+      <p className="mt-4">
         <span className="text-red-500">
           In an effort to limit incorrect labels, please only annotate a
           recording if you are confident in your identification.
