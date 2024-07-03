@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { compare } from 'bcryptjs';
+import { compare } from "bcryptjs";
 import "./App.css";
 import Directions from "./components/Directions";
 
@@ -27,7 +27,6 @@ function App() {
     setFilepaths(filepaths);
   };
 
-
   type FilePaths = {
     [key: string]: string;
   };
@@ -49,6 +48,8 @@ function App() {
       <button
         className="transition duration-300 ease-in-out bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-700 hover:to-gray-800 text-white font-bold py-2 px-4 m-4 rounded self-center"
         key={`${type}-${species_type}`}
+        id={`btn-${type}-${species_type}`}
+        name={`btn-${type}`}
         onClick={() =>
           fetch(`${SERVER_URL}/annotate`, {
             method: "POST",
@@ -113,7 +114,7 @@ function App() {
               <audio
                 controls
                 src={`data:audio/wav;base64, ${audio}`}
-                className="m-4 self-center"
+                className="m-4 self-center h-12"
               ></audio>
             )}
             {filepaths &&
