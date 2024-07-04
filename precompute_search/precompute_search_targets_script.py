@@ -39,6 +39,7 @@ def main(
     precompute_dir: epath.Path,
     target_recordings_path: epath.Path,
     labeled_outputs_path: epath.Path,
+    max_workers: int = None,
 ):
     """
     Precomputes search targets for a given set of target recordings.
@@ -48,6 +49,7 @@ def main(
         precompute_dir (epath.Path): The directory to store the precomputed search targets.
         target_recordings_path (epath.Path): The path to the target recordings.
         labeled_outputs_path (epath.Path): The path to the labeled outputs.
+        max_workers (int): The number of workers to use. Defaults to None.
     """
 
     precompute_dir.mkdir(exist_ok=True, parents=True)
@@ -59,14 +61,22 @@ def main(
 
     target_recordings_globs = list(target_recordings_path.glob("*/*.wav"))
 
-    for target_recording_path in tqdm.tqdm(
-        target_recordings_globs, total=len(target_recordings_globs)
-    ):
-        process_target_recording(
-            target_recording_path=target_recording_path,
-            bootstrap_config=bootstrap_config,
-            precompute_dir=precompute_dir,
-        )
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = [
+            executor.submit(
+                process_target_recording,
+                target_recording_path=target_recording_path,
+                bootstrap_config=bootstrap_config,
+                precompute_dir=precompute_dir,
+            )
+            for target_recording_path in target_recordings_globs
+        ]
+
+        for future in tqdm.tqdm(as_completed(futures), total=len(futures)):
+            try:
+                future.result()
+            except Exception as e:
+                print(f"Error processing target recording: {e}")
 
 
 if __name__ == "__main__":
@@ -87,6 +97,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-lop", "--labeled_outputs_path", type=epath.Path, required=True
     )
+    parser.add_argument("-mw", "--max_workers", type=int, default=None)
     args = parser.parse_args()
 
     main(
@@ -94,4 +105,5 @@ if __name__ == "__main__":
         precompute_dir=args.precompute_dir,
         target_recordings_path=args.target_recordings_path,
         labeled_outputs_path=args.labeled_outputs_path,
+        max_workers=args.max_workers,
     )
