@@ -12,7 +12,6 @@ Script to precompute mel spectrograms and wav files for all target recordings
 
 def process_target_recording(
     target_recording_path: epath.Path,
-    project_state: bootstrap.BootstrapState,
     bootstrap_config: bootstrap.BootstrapConfig,
     precompute_dir: epath.Path,
 ):
@@ -29,7 +28,6 @@ def process_target_recording(
         recording_path=target_recording_path,
         target_score=None,
         sample_rate=bootstrap_config.model_config["sample_rate"],
-        project_state=project_state,
         bootstrap_config=bootstrap_config,
         species_code=species,
         precompute_dir=precompute_dir,
@@ -52,15 +50,12 @@ def main(
         labeled_outputs_path (epath.Path): The path to the labeled outputs.
     """
 
-    if not precompute_dir.exists():
-        precompute_dir.mkdir(parents=True)
-    if not labeled_outputs_path.exists():
-        labeled_outputs_path.mkdir(parents=True)
+    precompute_dir.mkdir(exist_ok=True, parents=True)
+    labeled_outputs_path.mkdir(exist_ok=True, parents=True)
 
     bootstrap_config = bootstrap.BootstrapConfig.load_from_embedding_path(
         embeddings_path=embeddings_path, annotated_path=labeled_outputs_path
     )
-    project_state = bootstrap.BootstrapState(config=bootstrap_config)
 
     target_recordings_globs = list(target_recordings_path.glob("*/*.wav"))
 
@@ -69,7 +64,6 @@ def main(
     ):
         process_target_recording(
             target_recording_path=target_recording_path,
-            project_state=project_state,
             bootstrap_config=bootstrap_config,
             precompute_dir=precompute_dir,
         )

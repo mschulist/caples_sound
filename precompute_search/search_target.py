@@ -82,11 +82,11 @@ def precompute_search(
             sample_rate=sample_rate,
         )
 
+
 def precompute_search_single_target(
     recording_path: epath.Path,
     target_score: float | None,
     sample_rate: int,
-    project_state: bootstrap.BootstrapState,
     bootstrap_config: bootstrap.BootstrapConfig,
     species_code: str,
     precompute_dir: epath.Path,
@@ -95,14 +95,15 @@ def precompute_search_single_target(
     Precomputes the search results for a single target recording.
 
     Args:
-        recording_path (epath.Path): The path to the target recording file. Must be 5 seconds long. 
+        recording_path (epath.Path): The path to the target recording file. Must be 5 seconds long.
         target_score (float | None): The target score to filter the search results. If None, all results are returned.
-        sample_rate (int): The sample rate of the model. 
-        project_state (BootstrapState): The state of the project.
+        sample_rate (int): The sample rate of the model.
         bootstrap_config (BootstrapConfig): The configuration for bootstrapping.
         species_code (str): The species code.
         precompute_dir (epath.Path): The directory to save the precomputed files.
     """
+
+    project_state = bootstrap.BootstrapState(config=bootstrap_config)
 
     search_results = search_single_recording(
         recording_path=recording_path,
