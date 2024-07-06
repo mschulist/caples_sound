@@ -1,0 +1,11 @@
+python precompute_search/precompute_search_targets_beam.py \
+    --embeddings_path embeddings/ \
+    --precompute_dir gs://bird-ml/precomputed-search/ \
+    --target_recordings_path target_recordings \
+    --labeled_outputs_path labeled_outputs \
+    --runner DataflowRunner \
+    --project ${1} \
+    --region us-central1 \
+    --num_workers 5 \
+    --max_num_workers 5 \
+    --requirements_file precompute_search/beam_docker_image/requirements.txt

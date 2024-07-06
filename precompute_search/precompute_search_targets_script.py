@@ -1,37 +1,13 @@
-from search_target import precompute_search_single_target
 from etils import epath
 from chirp.inference.search import bootstrap
 import argparse
 import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from precompute_search_targets import PrecomputeSearchTargets
 
 """
 Script to precompute mel spectrograms and wav files for all target recordings
 """
-
-
-def process_target_recording(
-    target_recording_path: epath.Path,
-    bootstrap_config: bootstrap.BootstrapConfig,
-    precompute_dir: epath.Path,
-):
-    """
-    Process a single target recording.
-    Args:
-        target_recording_path: epath.Path, path to the target recording
-        project_state: bootstrap.BootstrapState, project state
-        bootstrap_config: bootstrap.BootstrapConfig, project config
-        precompute_dir: epath.Path, path to the directory where to save the precomputed data
-    """
-    species = target_recording_path.parent.name.split("_")[0]
-    precompute_search_single_target(
-        recording_path=target_recording_path,
-        target_score=None,
-        sample_rate=bootstrap_config.model_config["sample_rate"],
-        bootstrap_config=bootstrap_config,
-        species_code=species,
-        precompute_dir=precompute_dir,
-    )
 
 
 def main(
@@ -59,16 +35,15 @@ def main(
         embeddings_path=embeddings_path, annotated_path=labeled_outputs_path
     )
 
+    pst = PrecomputeSearchTargets(
+        bootstrap_config=bootstrap_config, precompute_dir=precompute_dir
+    )
+
     target_recordings_globs = list(target_recordings_path.glob("*/*.wav"))
 
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = [
-            executor.submit(
-                process_target_recording,
-                target_recording_path=target_recording_path,
-                bootstrap_config=bootstrap_config,
-                precompute_dir=precompute_dir,
-            )
+            executor.submit(pst.process_target_recording, target_recording_path)
             for target_recording_path in target_recordings_globs
         ]
 
