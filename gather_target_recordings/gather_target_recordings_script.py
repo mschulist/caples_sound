@@ -1,4 +1,4 @@
-from gather_target_recordings import GatherTargetRecordings
+from gather_target_recordings.gather_target_recordings import GatherTargetRecordings
 import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from etils import epath

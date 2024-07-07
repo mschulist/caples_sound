@@ -1,10 +1,12 @@
 python gather_target_recordings/gather_target_recordings.py \
-    --species_codes naswar \
+    --species_codes_file gs://bird-ml/caples-data/bird_list.csv \
     --n 5 \
-    --target_path gs://bird-ml/caples-data/target_recordings_test \
+    --target_path gs://bird-ml/caples-data/target_recordings_beam \
     --runner DataflowRunner \
     --project ${1} \
     --region us-central1 \
-    --num_workers 5 \
-    --max_num_workers 5 \
-    --requirements_file precompute_search/beam_docker_image/requirements.txt
+    --num_workers 8 \
+    --max_num_workers 8 \
+    --setup_file gather_target_recordings/setup.py \
+    --save_main_session \
+    --prebuild_sdk_container_engine cloud_build

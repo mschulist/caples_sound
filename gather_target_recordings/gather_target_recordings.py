@@ -1,14 +1,8 @@
-import requests
 from etils import epath
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
-import numpy as np
-from chirp.taxonomy import namespace_db
-from chirp import audio_utils
-from scipy.io import wavfile
 import argparse
-import tempfile
-from time import sleep
+import logging
 
 
 class GatherTargetRecordings(beam.DoFn):
@@ -32,8 +26,12 @@ class GatherTargetRecordings(beam.DoFn):
             window_s (int, optional): Window size in samples. Defaults to 5.
             max_len (int, optional): Maximum length of the recordings in seconds. Defaults to 60.
         """
+
+        from etils import epath
+
         self.n = n
         self.target_path = epath.Path(target_path)
+        self.target_path.mkdir(exist_ok=True, parents=True)
         self.sample_rate = sample_rate
         self.window_s = window_s
         self.types = types
@@ -64,6 +62,9 @@ class GatherTargetRecordings(beam.DoFn):
             str: The scientific name.
         """
 
+        from chirp.taxonomy import namespace_db
+        import logging
+
         db = namespace_db.load_db()
         mapping = db.mappings["xenocanto_11_2_to_ebird2022_species"]
         # We need to reverse this mapping because we need eBird code -> XC scientific name
@@ -71,7 +72,7 @@ class GatherTargetRecordings(beam.DoFn):
         r_mapping = {v: k for k, v in mapping.mapped_pairs.items()}
         sci_name = r_mapping.get(species_code, None)
         if sci_name is None:
-            raise ValueError(f"Could not find scientific name for {species_code}")
+            logging.warning(f"Could not find scientific name for {species_code}")
         return sci_name
 
     def filter_xc_response(self, response: dict) -> list[str]:
@@ -86,6 +87,7 @@ class GatherTargetRecordings(beam.DoFn):
 
         """
         xc_ids: list[str] = []
+        species = "no recordings found -> no species found"
         if len(response["recordings"]) > 0:
             species = response["recordings"][0]["en"]
         print(f"Found {len(response['recordings'])} recordings for {species}")
@@ -109,6 +111,10 @@ class GatherTargetRecordings(beam.DoFn):
         Returns:
             list[str]: A list of Xeno-Canto IDs for the matching recordings.
         """
+
+        import requests
+        from time import sleep
+
         url = f'https://www.xeno-canto.org/api/2/recordings?query={scientific_name} type:"{voc_type}" len:1-{self.max_len}'
 
         status_code = 0
@@ -140,6 +146,12 @@ class GatherTargetRecordings(beam.DoFn):
         Returns:
             None
         """
+
+        import tempfile
+        from scipy.io import wavfile
+        from chirp import audio_utils
+        import numpy as np
+
         try:
             audio = audio_utils.load_xc_audio(xc_id, sample_rate=self.sample_rate)
             peaks = audio_utils.slice_peaked_audio(
@@ -187,6 +199,7 @@ class GatherTargetRecordings(beam.DoFn):
 
 def run_pipeline(
     species_codes: list[str],
+    species_codes_file: epath.PathLike,
     n: int,
     target_path: epath.PathLike,
     pipeline_args: list[str] = None,
@@ -200,6 +213,7 @@ def run_pipeline(
 
     Args:
         species_codes (list[str]): List of species codes.
+        species_codes_file (epath.Path, optional): Path to the species codes file. Defaults to None.
         n (int): Number of target recordings to gather for each species.
         target_path (epath.Path): Path to the target directory.
         types (list[str], optional): List of recording types to consider. Defaults to ["song", "call"].
@@ -210,6 +224,11 @@ def run_pipeline(
     Returns:
         None
     """
+
+    if species_codes_file:
+        with epath.Path(species_codes_file).open("r") as f:
+            species_codes_from_file = f.read().splitlines()
+        species_codes += species_codes_from_file
 
     options = PipelineOptions(pipeline_args)
 
@@ -233,7 +252,15 @@ def run_pipeline(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--species_codes", nargs="+", help="List of species codes.")
+    parser.add_argument(
+        "--species_codes", nargs="+", help="List of species codes.", default=[]
+    )
+    parser.add_argument(
+        "--species_codes_file",
+        type=epath.Path,
+        help="Path to the species codes",
+        default=None,
+    )
     parser.add_argument(
         "--n", type=int, help="Number of target recordings to gather for each species."
     )
@@ -262,6 +289,7 @@ if __name__ == "__main__":
 
     run_pipeline(
         species_codes=args.species_codes,
+        species_codes_file=args.species_codes_file,
         n=args.n,
         target_path=args.target_path,
         types=args.types,
